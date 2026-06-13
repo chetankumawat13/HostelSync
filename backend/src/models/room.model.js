@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+/**
+ * Define the Room schema for the hostel management system.
+ */
+
 const roomSchema = new mongoose.Schema({
     roomNumber : {
         type: String,
@@ -36,4 +40,6 @@ const roomSchema = new mongoose.Schema({
 
 
 
-module.exports = mongoose.model('Room',roomSchema)
+const roomModel = mongoose.model('Room', roomSchema);
+
+module.exports = roomModel;
