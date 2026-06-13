@@ -1,6 +1,7 @@
 const userModel = require("../models/user.model");
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const redis = require("../config/cache");
 
 
 
@@ -115,9 +116,56 @@ async function loginController(req,res){
     
 }
 
+async function getMeController(req,res){
+    const user = await userModel.findById(req.user.id)
+
+    if(!user){
+        return res.status(404).json({
+            message:'User not found',
+        })
+    }
+
+    res.status(200).json({
+        message:'User fetched successfully',
+        user:{
+            id:user._id,
+            username:user.username,
+            email:user.email,
+            role:user.role,
+            profilePhoto:user.profilePhoto,
+            phone:user.phone,
+            isVerified:user.isVerified
+        }
+    })
+
+}
+
+async function logOutController(req,res){
+    try{
+        const token = req.cookies.token;
+        if(!token){
+            return res.status(400).json({
+                message:'No token found',
+            })
+        }
+        res.clearCookie('token')
+
+        await redis.set(token,Date.now().toString());
+
+        return res.status(200).json({
+            message:'User logged out successfully',
+        })
+
+    }catch(error){
+        return res.status(500).json({
+            message:'Internal server error',
+        })
+    }
+}
+
 
 
 
 module.exports = {
-    registerController,loginController
+    registerController,loginController,getMeController,logOutController
 }
