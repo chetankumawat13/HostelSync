@@ -8,15 +8,14 @@ app.use(express.json())
 app.use(cookieParser())
 
 
-/**
- * Import authentication routes and use them under the /api/auth path.
- */
+
 const authRoutes = require('./routes/auth.routes')
-
-
-
+const roomRoutes = require('./routes/room.routes')
 
 app.use('/api/auth', authRoutes)
+app.use('/api/rooms', roomRoutes)
+
+
 
 
 
