@@ -5,63 +5,122 @@ const redis = require("../config/cache");
 
 
 
-async function registerController(req,res){
-    const {username,email,password,role,profilePhoto,phone,isVerified} = req.body;
 
-    const isUserExist = await userModel.findOne({
-        $or:[
-            {username},
-            {email}
-        ]
-    })
+async function registerController(req, res) {
+    try {
 
-    if(isUserExist){
-        return res.status(400).json({
-            message:'Username or email already exists',
-        })
+        const {
+            username,
+            email,
+            password,
+            role,
+            profilePhoto,
+            phone,
+
+            // Student fields
+            rollNumber,
+            course,
+            year,
+            parentName,
+            parentPhone,
+            address
+
+        } = req.body;
+
+        const isUserExist = await userModel.findOne({
+            $or: [
+                { username },
+                { email }
+            ]
+        });
+
+        if (isUserExist) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username or email already exists'
+            });
+        }
+
+        if (role === 'student') {
+
+            const isRollExist = await studentModel.findOne({
+                rollNumber
+            });
+
+            if (isRollExist) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Roll number already exists'
+                });
+            }
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = await userModel.create({
+            username,
+            email,
+            password: passwordHash,
+            role,
+            profilePhoto,
+            phone
+        });
+
+        let student = null;
+
+        if (role === 'student') {
+
+            student = await studentModel.create({
+                userId: user._id,
+                rollNumber,
+                course,
+                year,
+                parentName,
+                ParentPhone: parentPhone,
+                address
+            });
+
+        }
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+                username: user.username,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: '7d'
+            }
+        );
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: 'User registered successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profilePhoto: user.profilePhoto,
+                phone: user.phone
+            },
+            student
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
     }
-
-    const passwordHash = await bcrypt.hash(password,10)
-
-    const user = await userModel.create({
-        username,
-        email,
-        password:passwordHash,
-        role,
-        profilePhoto,
-        phone,
-        isVerified
-    })
-
-    const token = jwt.sign(
-        {
-            id:user._id,
-            username:user.username
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn:'7d'
-        }
-    )
-
-    res.cookie('token',token)
-
-    return res.status(201).json({
-        message:'User registered successfully',
-        user:{
-            id:user._id,
-            username:user.username,
-            email:user.email,
-            role:user.role,
-            profilePhoto:user.profilePhoto,
-            phone:user.phone,
-            isVerified:user.isVerified
-        }
-    })
-
-
-
-
 }
 
 async function loginController(req,res){
