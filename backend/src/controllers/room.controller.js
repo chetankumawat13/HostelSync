@@ -29,7 +29,14 @@ async function createRoomController(req,res){
 
 }
 
+async function getAllRoomsController(req,res){
+    const rooms = await roomModel.find()
+    res.status(200).json({
+        message:'Rooms fetched successfully',
+        rooms
+    })
+}
 
 module.exports = {
-    createRoomController
+    createRoomController,getAllRoomsController
 }

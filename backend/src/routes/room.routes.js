@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const authMiddleware = require('../middleware/auth.middleware');
 const adminMiddleware = require('../middleware/admin.middleware');
-const { createRoomController } = require('../controllers/room.controller');
+const { createRoomController, getAllRoomsController } = require('../controllers/room.controller');
 
 const roomRouter = Router();
 
@@ -14,4 +14,14 @@ const roomRouter = Router();
 roomRouter.post('/',authMiddleware,adminMiddleware,createRoomController)
 
 
+/**
+ * @get /api/rooms
+ * @desc Get all rooms
+ * @access Private/Admin
+ */
+
+roomRouter.get('/',authMiddleware,adminMiddleware,getAllRoomsController)
+
+
 module.exports = roomRouter;
+
