@@ -13,11 +13,13 @@ const authRoutes = require('./routes/auth.routes')
 const roomRoutes = require('./routes/room.routes')
 const studentRoutes = require('./routes/student.routes')
 const leaveRoutes = require('./routes/leave.routes')
+const complaintRoutes = require('./routes/complaint.routes')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/rooms', roomRoutes)
 app.use('/api/students', studentRoutes)
 app.use('/api/leaves', leaveRoutes)
+app.use('/api/complaints', complaintRoutes)
 
 
 

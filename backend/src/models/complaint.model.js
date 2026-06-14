@@ -21,6 +21,11 @@ const complaintSchema = new mongoose.Schema({
         enum: ['pending', 'in-progress', 'resolved', 'rejected'],
         default: 'pending'
     },
+    assignedTo:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+        default: null
+    },
     remarks:String,
     resolveAt:Date,
 },{timestamps:true})
