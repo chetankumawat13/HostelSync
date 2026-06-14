@@ -2,6 +2,7 @@ const userModel = require("../models/user.model");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const redis = require("../config/cache");
+const studentModel = require("../models/student.model");
 
 
 
@@ -41,7 +42,6 @@ async function registerController(req, res) {
             });
         }
 
-        if (role === 'student') {
 
             const isRollExist = await studentModel.findOne({
                 rollNumber
@@ -53,7 +53,6 @@ async function registerController(req, res) {
                     message: 'Roll number already exists'
                 });
             }
-        }
 
         const passwordHash = await bcrypt.hash(password, 10);
 
@@ -68,7 +67,6 @@ async function registerController(req, res) {
 
         let student = null;
 
-        if (role === 'student') {
 
             student = await studentModel.create({
                 userId: user._id,
@@ -80,7 +78,6 @@ async function registerController(req, res) {
                 address
             });
 
-        }
 
         const token = jwt.sign(
             {
@@ -125,14 +122,20 @@ async function registerController(req, res) {
 
 async function loginController(req,res){
     const {email,password} = req.body;
-
     const user = await userModel.findOne({email})
+    const role = user ? user.role : null
+    let student = null
+
+    if(role === 'student'){
+        student = await studentModel.findOne({userId:user._id})
+    }
 
     if(!user){
         return res.status(400).json({
             message:'Invalid credentials',
         })
     }
+
 
     const isPasswordMatch = await bcrypt.compare(password,user.password)
 
@@ -165,8 +168,18 @@ async function loginController(req,res){
             profilePhoto:user.profilePhoto,
             phone:user.phone,
             isVerified:user.isVerified
-        }
+        },
+        student:student?{
+            rollNumber:student.rollNumber,
+            course:student.course,
+            year:student.year,
+            parentName:student.parentName,
+            parentPhone:student.ParentPhone,
+            address:student.address
+        }:null
     })
+
+
 
 
 
@@ -183,6 +196,11 @@ async function getMeController(req,res){
             message:'User not found',
         })
     }
+    let student = null
+
+    if(user.role === 'student'){
+        student = await studentModel.findOne({userId:user._id}).populate('room')
+    }
 
     res.status(200).json({
         message:'User fetched successfully',
@@ -194,7 +212,16 @@ async function getMeController(req,res){
             profilePhoto:user.profilePhoto,
             phone:user.phone,
             isVerified:user.isVerified
-        }
+        },
+        student:student?{
+            rollNumber:student.rollNumber,
+            course:student.course,
+            year:student.year,
+            parentName:student.parentName,
+            parentPhone:student.ParentPhone,
+            address:student.address,
+            room:student.room
+        }:null
     })
 
 }

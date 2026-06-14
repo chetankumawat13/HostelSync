@@ -1,4 +1,5 @@
 const roomModel = require("../models/room.model")
+const studentModel = require("../models/student.model")
 const userModel = require("../models/user.model")
 
 
@@ -31,7 +32,7 @@ async function createRoomController(req,res){
 }
 
 async function getAllRoomsController(req,res){
-    const rooms = await roomModel.find()
+    const rooms = await roomModel.find().populate('occupants','username email rollNumber')
     res.status(200).json({
         message:'Rooms fetched successfully',
         rooms
@@ -49,7 +50,7 @@ async function assignStudentToRoom(req,res){
         })
     }
 
-    const student = await userModel.findById(studentId)
+    const student = await studentModel.findById(studentId)
     if(!student || student.role !== 'student'){
         return res.status(404).json({
             message:'Student not found'
@@ -68,7 +69,16 @@ async function assignStudentToRoom(req,res){
         room.status = 'occupied'
     }
 
+    if(room.occupants.includes(student._id)){
+        return res.status(400).json({
+            message:'Student is already assigned to this room'
+        })
+    }
+
     await room.save()
+
+    student.room = room._id
+    await student.save()
 
     res.status(200).json({
         message:'Student assigned to room successfully',
@@ -89,7 +99,7 @@ async function removeStudentFromRoom(req,res){
         })
     }
 
-    const student = await userModel.findById(studentId)
+    const student = await studentModel.findById(studentId)
     if(!student || student.role !== 'student'){
         return res.status(404).json({
             message:'Student not found'
@@ -110,6 +120,9 @@ async function removeStudentFromRoom(req,res){
     }
 
     await room.save()
+
+    student.room = null
+    await student.save()
 
     res.status(200).json({
         message:'Student removed from room successfully',
@@ -132,7 +145,7 @@ async function updateRoomController(req,res){
     room.roomNumber = roomNumber || room.roomNumber
     room.floor = floor || room.floor
     room.block = block || room.block
-    room.capacity = capacity || room.capacity
+    room.capacity = capacity ?? room.capacity
     room.amenities = amenities || room.amenities
 
     await room.save()
@@ -146,3 +159,5 @@ async function updateRoomController(req,res){
 module.exports = {
     createRoomController,getAllRoomsController,assignStudentToRoom,removeStudentFromRoom,updateRoomController
 }
+
+
