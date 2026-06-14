@@ -31,6 +31,11 @@ studentRouter.get('/:id',authMiddleware,getStudentByIdController)
 
 studentRouter.put('/:id',authMiddleware,updateStudentController)
 
+/**
+ * @get /api/students/:id/room
+ * @desc Get the assigned room of a student
+ * @access Private
+ */
 
 studentRouter.get('/:id/room',authMiddleware,getAssignedRoomController)
 
