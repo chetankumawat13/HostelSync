@@ -11,9 +11,11 @@ app.use(cookieParser())
 
 const authRoutes = require('./routes/auth.routes')
 const roomRoutes = require('./routes/room.routes')
+const studentRoutes = require('./routes/student.routes')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/rooms', roomRoutes)
+app.use('/api/students', studentRoutes)
 
 
 
